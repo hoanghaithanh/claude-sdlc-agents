@@ -42,7 +42,7 @@ For a new story pulled into the current sprint (or any feature on an existing co
 5. **test-engineer** — write/verify test coverage.
 6. **code-reviewer** — review the diff.
 7. **security-auditor** — only if the change touches auth, authorization, input handling, secrets, payments, or PII.
-8. **test-engineer (acceptance validation)** — validate the running system against the original acceptance criteria and produce an acceptance report.
+8. **test-engineer (acceptance validation)** — validate the running system against the original acceptance criteria and produce an acceptance report, including a visual check against the architect's design reference for UI-facing features.
 9. **tech-writer** — update docs (once the feature is stable).
 10. **project-manager** — update milestone/sprint status; at sprint close-out, run the retro.
 

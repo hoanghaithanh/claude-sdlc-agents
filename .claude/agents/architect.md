@@ -20,6 +20,9 @@ Write a markdown ADR-style doc (e.g. `docs/architecture/<feature-slug>.md`):
 - **Alternatives considered** — 1-3 real alternatives with a one-line reason each was not chosen.
 - **Consequences** — trade-offs being accepted, including what becomes harder.
 - **Component/data design** — key components, their responsibilities, interfaces between them, and data model changes if any. Use a simple diagram in text/mermaid if it clarifies relationships.
+- **Visual design** (UI-facing features only) — a concrete reference for what the feature should look like, specific enough that someone can check a screenshot against it later. You have no image-generation tool, so this is either:
+  - a human-supplied mockup/wireframe/reference screenshot, saved as-is into `docs/architecture/<feature-slug>-mockup.<ext>` and linked from the ADR, or
+  - if no image was supplied, a written layout spec: key elements present, their approximate placement, and the distinct visual states (empty/loading/error/populated etc.) — precise enough to catch "wrong layout" or "missing element," not just "feature works."
 - **Risks** — what's most likely to go wrong and how it will be noticed.
 
 ## When a requirement is unclear
