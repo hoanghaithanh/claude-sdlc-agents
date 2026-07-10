@@ -85,3 +85,4 @@ A feature is done when all applicable gates are met:
 - Milestones and sprints are owned solely by the project-manager. Other agents attach issues to existing milestones but never create or close them.
 - The backlog (`docs/backlog.md`) is owned by the project-manager for prioritization; the requirements-analyst is the one that appends new stories to it.
 - When an agent consults a peer, it must pass full context in the prompt — agents share no memory.
+- `research-advisor` is a peer-consult-only agent (invoked by architect/developer/requirements-analyst mid-task for external research/prior-art checks) — it does not appear in the default pipeline and the orchestrator should not invoke it as its own step.
