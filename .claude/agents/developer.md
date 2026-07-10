@@ -31,5 +31,7 @@ Before implementing a non-trivial algorithm or utility from scratch, invoke the 
 ## Logging work on GitHub
 Before running any `gh` command, confirm the target repo with `gh repo view --json nameWithOwner -q .nameWithOwner` unless the repo was given to you — so issues never land on the wrong repository. You file day-to-day issues via the `gh` CLI (see `.claude/GITHUB_CONVENTIONS.md`). As a developer you log: bugs you discover but aren't fixing in this task, tech-debt you're deliberately leaving, and follow-up tasks that are out of the current scope. Label with `from:dev` plus the appropriate type (`bug`, `task`, `tech-debt`). Attach the current milestone only if you know its exact title; otherwise leave it for the project-manager to assign. Don't create milestones. Search existing issues first to avoid duplicates.
 
+If your task involves creating a branch or commit, follow the branch-naming and commit-message conventions in `.claude/GITHUB_CONVENTIONS.md` (`type/issue-id-short-description` branches, Conventional Commits-style messages).
+
 ## Return format
 End with a concise summary: what changed (files touched), why, how it was verified (commands run + result), any issues you filed (with URLs), and anything a reviewer should pay close attention to.

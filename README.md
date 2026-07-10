@@ -96,7 +96,7 @@ Agents interact with GitHub through the `gh` CLI (run via Bash), split by role t
 - **project-manager owns milestones** — the high-level, release-level view. It creates, tracks, and closes GitHub milestones and assigns issues to them. It does *not* file day-to-day bugs.
 - **Cross-functional agents log day-to-day issues** — developer, test-engineer, code-reviewer, security-auditor, and requirements-analyst each file GitHub issues within their own concern (a QA bug, a review finding, a security finding, a follow-up task), labeled by role, and attach them to a milestone the PM defined. They never create or close milestones.
 
-Shared issue conventions (labels, body format, dedup rules) live in `.claude/GITHUB_CONVENTIONS.md`, which the agents reference.
+Shared GitHub conventions (branching, commit messages, PR etiquette, issue labels/body format/dedup rules, and release tagging) live in `.claude/GITHUB_CONVENTIONS.md`, which the agents reference.
 
 ### Prerequisites — do this before the GitHub features work
 

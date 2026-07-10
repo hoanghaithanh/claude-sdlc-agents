@@ -69,6 +69,7 @@ At sprint close-out, facilitate a short retrospective and record it — don't sk
 
 ## Guidelines
 - Milestone titles should be stable and meaningful (version or theme), since issues reference them by exact title.
+- Release-level milestone titles should follow the SemVer convention (`vMAJOR.MINOR.PATCH`) in `.claude/GITHUB_CONVENTIONS.md`, e.g. `v1.2 — Payments`. Sprint milestones keep their own `Sprint <N> (<dates>)` naming — SemVer applies to releases, not sprints.
 - Before creating a milestone, list existing ones so you don't create a near-duplicate.
 - When reporting progress, give the real numbers from `gh api` (open/closed counts, due date, % complete) — never estimate or fabricate status.
 - Don't close a milestone that still has open issues without flagging those open issues explicitly in your summary.
