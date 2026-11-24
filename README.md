@@ -6,14 +6,14 @@ A set of Claude Code subagents, one per SDLC role, meant to be dropped into any 
 
 | Agent | SDLC phase | Model / effort | Can write code? |
 |---|---|---|---|
-| `project-manager` | Planning / tracking | sonnet / medium | No — owns GitHub milestones |
+| `project-manager` | Planning / tracking / close-out | sonnet / medium | No — owns milestones, backlog, retros |
 | `requirements-analyst` | Requirements | sonnet / high | No — writes specs only |
 | `architect` | Design | **opus / high** | No — writes design docs only |
 | `developer` | Implementation | sonnet / medium | Yes |
 | `code-reviewer` | Review | sonnet / medium | No — read-only (files issues only) |
-| `test-engineer` | Testing + acceptance validation | sonnet / medium | Tests only |
-| `security-auditor` | Security review | **opus / high** | No — read-only (files issues only) |
-| `devops-engineer` | Release/deploy | sonnet / medium | Infra/CI config only |
+| `test-engineer` | Test design, testing, acceptance validation | sonnet / medium | Tests + test plans only |
+| `security-auditor` | Threat model + security review | **opus / high** | No — read-only toward code (writes threat models only) |
+| `devops-engineer` | Release/deploy + post-release checks | sonnet / medium | Infra/CI config + release plans only |
 | `tech-writer` | Documentation | sonnet / medium | Docs only |
 
 (Tool lists per agent are in each agent's frontmatter; reviewers and auditors are read-only toward code.)
@@ -40,7 +40,29 @@ Both `model:` and `effort:` are per-agent frontmatter fields Claude Code reads a
   - `code-reviewer` is kept on sonnet, since pattern-and-style review is where sonnet performs well (this mirrors Anthropic's own built-in agents). If your reviews need deeper architectural judgment, promote it to opus — at higher cost per review.
 - **Global override exists.** `CLAUDE_CODE_SUBAGENT_MODEL` overrides every agent's model at once (useful to force everything to sonnet during development to save cost). Per-agent frontmatter is what gives you this tiering; the env var is the blunt instrument.
 
-## Inter-agent communication
+## How the roles interact: artifacts, gates, trace
+
+The agents are wired together the way roles are in a gated SDLC. They don't share memory, so everything passes through artifacts, human gates, and a traceability matrix. The contracts live in **`.claude/SDLC_CONVENTIONS.md`**; the gates live in **`CLAUDE.md`**.
+
+| Gate | Approves | Main artifacts |
+|---|---|---|
+| **G1** Requirements baseline | Testable ACs with stable IDs | `docs/requirements/`, `docs/traceability/` (RTM created) |
+| **G2** Design approved | Design, test plan, and threat model together (V-model shift-left) | `docs/architecture/`, `docs/qa/test-plans/`, `docs/security/` |
+| **G3** Code complete | Tests pass, no Blockers or Critical/High findings | PR with AC IDs, RTM implementation column |
+| **G4** Acceptance | Every AC verified or waived; **human sign-off** | `docs/qa/acceptance/` |
+| **G5** Go / no-go | Release plan with rollback; human as change board | `docs/releases/`, release notes |
+| **G6** Close-out | Post-release checks; feedback into backlog | `from:ops` issues, `docs/backlog.md`, retro |
+
+- **Traceability.** Every acceptance criterion (`PWD-AC-03`) is tracked in `docs/traceability/<feature>.md` from design through planned tests, code, verification and defects. Each role fills only its own column.
+- **Change control.** After G1, a requirement changes only through a `change-request` issue: the analyst amends, the PM assesses sprint impact, the human approves, and affected trace rows go `Stale` and get re-checked.
+- **Feedback routing.** Findings go to the role that owns the faulty input (defect → developer, design gap → architect, requirement gap → analyst, production issue → PM → backlog). Production feedback re-entering the backlog is what closes the cycle.
+- **Handoff block.** Every agent ends with a standard `## Handoff` section (artifacts, trace, gate readiness, routed findings, next step), so the main session can run the gate check.
+- **Disagreements.** Each kind of decision has an owner (design → architect, severity → security-auditor, …). The challenger states an evidence-based position, and the owner responds once: it either concedes or holds with a proposed agreement. If they still disagree, the main session writes a neutral decision brief and **you** decide. The decision is logged in `docs/decisions.md`, and the parties work to it ("disagree and commit"). Agents can't overrule a Blocker, a Critical/High security finding or a failed AC between themselves; only you can accept that risk.
+- **Two lanes.** Small fixes take a **fast lane** (developer → test → review → one combined approval), so the gates don't tax trivial work.
+
+## Inter-agent communication (peer consultation)
+
+Within a single run, agents can also consult each other directly:
 
 Agents can consult each other when they hit a genuine ambiguity, instead of silently guessing — the way the real roles would:
 
@@ -121,20 +143,24 @@ The pipeline order and the definition-of-done live in **`CLAUDE.md`**, which the
 
 **Human-checkpointed, not auto-piloted.** The main session runs the pipeline **one stage at a time**: after each agent finishes, it stops, reports back what was produced and what's next, and waits for your go-ahead before invoking the next agent. It won't chain the whole pipeline unattended — you can review each artifact, answer open questions, or skip steps at every handoff. (An agent consulting a peer *within its own run* doesn't checkpoint — that's internal to that agent.)
 
-Default feature pipeline (full detail and the greenfield variant are in `CLAUDE.md`):
+Default full-lane pipeline (full detail, exit criteria, and the greenfield variant are in `CLAUDE.md`):
 
-1. **project-manager** — milestone
-2. **requirements-analyst** — requirements + acceptance criteria
-3. **architect** — design (skip for trivial changes)
-4. **developer** — implement
-5. **test-engineer** — test coverage
-6. **code-reviewer** — review the diff
-7. **security-auditor** — if it touches auth / input / secrets / PII
-8. **test-engineer (acceptance validation)** — validate the running system against acceptance criteria, then **you give final sign-off**
-9. **tech-writer** — docs
-10. **project-manager** — milestone status
+1. **project-manager**: sprint/milestone
+2. **requirements-analyst**: requirements, IDs, RTM → **G1**
+3. **architect**: design mapped to AC IDs
+4. **test-engineer (test design)**: test plan from the ACs, before code exists
+5. **security-auditor (threat model)**: if sensitive → **G2**
+6. **developer**: implement, with AC IDs in commits/PR
+7. **test-engineer**: implement and run the planned tests
+8. **code-reviewer**: review the diff, including a trace check
+9. **security-auditor (code audit)**: if sensitive, verify the mitigations → **G3**
+10. **test-engineer (acceptance validation)**: then **you give final sign-off** → **G4**
+11. **tech-writer**: docs + release notes
+12. **devops-engineer (release readiness)**: release plan + rollback → **G5**
+13. **devops-engineer (post-release check)**: production issues filed `from:ops`
+14. **project-manager**: close-out, feedback into backlog, retro → **G6**
 
-You don't have to invoke every agent for every task — a one-line fix might only need developer → code-reviewer. You can also invoke any agent directly by name at any time, bypassing the pipeline.
+You don't have to invoke every agent for every task. A one-line fix goes through the fast lane (developer → test-engineer → code-reviewer → one approval). You can also invoke any agent directly by name at any time, bypassing the pipeline.
 
 ### Starting a project from scratch
 
